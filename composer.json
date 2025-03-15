@@ -1,0 +1,32 @@
+{
+    "name": "act/stock-importer",
+    "description": "Import stock levels from CSV files",
+    "version": "1.0.0",
+    "type": "shopware-platform-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ACT"
+        }
+    ],
+    "require": {
+        "shopware/core": "^6.5.0",
+        "phpseclib/phpseclib": "^3.0"
+    },
+    "extra": {
+        "shopware-plugin-class": "ActStockImporter\\ActStockImporter",
+        "label": {
+            "de-DE": "Actualize: Lagerbestand Importer",
+            "en-GB": "Actualize: Stock Importer"
+        },
+        "description": {
+            "de-DE": "Importiert Lagerbestände aus CSV-Dateien",
+            "en-GB": "Imports stock levels from CSV files"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "ActStockImporter\\": "src/"
+        }
+    }
+}

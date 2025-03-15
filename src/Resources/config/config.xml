@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title lang="de-DE">Import Einstellungen</title>
+        <title lang="en-GB">Import Settings</title>
+
+        <input-field type="single-select">
+            <name>importMethod</name>
+            <label lang="de-DE">Import Methode</label>
+            <label lang="en-GB">Import Method</label>
+            <options>
+                <option>
+                    <id>local</id>
+                    <name lang="de-DE">Lokales Verzeichnis</name>
+                    <name lang="en-GB">Local Directory</name>
+                </option>
+                <option>
+                    <id>sftp</id>
+                    <name lang="de-DE">SFTP Server</name>
+                    <name lang="en-GB">SFTP Server</name>
+                </option>
+            </options>
+            <defaultValue>local</defaultValue>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>stockUpdateMethod</name>
+            <label lang="de-DE">Lagerbestand Aktualisierung</label>
+            <label lang="en-GB">Stock Update Method</label>
+            <options>
+                <option>
+                    <id>normal</id>
+                    <name lang="de-DE">Normal (berücksichtigt offene Bestellungen)</name>
+                    <name lang="en-GB">Normal (considers pending orders)</name>
+                </option>
+                <option>
+                    <id>absolute</id>
+                    <name lang="de-DE">Absolut (ignoriert offene Bestellungen)</name>
+                    <name lang="en-GB">Absolute (ignores pending orders)</name>
+                </option>
+            </options>
+            <defaultValue>normal</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title lang="de-DE">Zeitplan</title>
+        <title lang="en-GB">Schedule</title>
+
+        <input-field type="bool">
+            <name>scheduledImportActive</name>
+            <label lang="de-DE">Automatischen Import aktivieren</label>
+            <label lang="en-GB">Enable automatic import</label>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="int">
+            <name>scheduledImportInterval</name>
+            <label lang="de-DE">Import Intervall (in Minuten)</label>
+            <label lang="en-GB">Import interval (in minutes)</label>
+            <defaultValue>2</defaultValue>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>backupRetentionDays</name>
+            <label lang="de-DE">Backup-Dateien aufbewahren für</label>
+            <label lang="en-GB">Retain backup files for</label>
+            <options>
+                <option>
+                    <id>7</id>
+                    <name lang="de-DE">7 Tage</name>
+                    <name lang="en-GB">7 days</name>
+                </option>
+                <option>
+                    <id>14</id>
+                    <name lang="de-DE">14 Tage</name>
+                    <name lang="en-GB">14 days</name>
+                </option>
+                <option>
+                    <id>30</id>
+                    <name lang="de-DE">30 Tage</name>
+                    <name lang="en-GB">30 days</name>
+                </option>
+                <option>
+                    <id>90</id>
+                    <name lang="de-DE">90 Tage</name>
+                    <name lang="en-GB">90 days</name>
+                </option>
+                <option>
+                    <id>180</id>
+                    <name lang="de-DE">180 Tage</name>
+                    <name lang="en-GB">180 days</name>
+                </option>
+                <option>
+                    <id>365</id>
+                    <name lang="de-DE">365 Tage</name>
+                    <name lang="en-GB">365 days</name>
+                </option>
+            </options>
+            <defaultValue>30</defaultValue>
+        </input-field>
+    </card>
+
+    <card>
+        <title lang="de-DE">SFTP Einstellungen</title>
+        <title lang="en-GB">SFTP Settings</title>
+
+        <input-field>
+            <name>sftpHost</name>
+            <label lang="de-DE">SFTP Host</label>
+            <label lang="en-GB">SFTP Host</label>
+        </input-field>
+
+        <input-field type="int">
+            <name>sftpPort</name>
+            <label lang="de-DE">SFTP Port</label>
+            <label lang="en-GB">SFTP Port</label>
+            <defaultValue>22</defaultValue>
+        </input-field>
+
+        <input-field>
+            <name>sftpUsername</name>
+            <label lang="de-DE">SFTP Benutzername</label>
+            <label lang="en-GB">SFTP Username</label>
+        </input-field>
+
+        <input-field type="password">
+            <name>sftpPassword</name>
+            <label lang="de-DE">SFTP Passwort</label>
+            <label lang="en-GB">SFTP Password</label>
+        </input-field>
+
+        <input-field>
+            <name>sftpPath</name>
+            <label lang="de-DE">SFTP Pfad</label>
+            <label lang="en-GB">SFTP Path</label>
+            <defaultValue>/</defaultValue>
+        </input-field>
+    </card>
+</config>
