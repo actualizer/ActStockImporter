@@ -1,211 +1,195 @@
-# ACT Stock Importer
+# ActStockImporter - Shopware Plugin
 
-## English
+A Shopware 6 plugin that automatically imports stock levels from CSV files, supporting both local file processing and SFTP integration for automated stock management.
 
-A Shopware 6 plugin for importing stock levels via CSV files, either locally or via SFTP.
+## Features
 
-### Features
+- ✅ Import stock levels from CSV files
+- ✅ Support for both local directory and SFTP server as data source
+- ✅ Scheduled automatic imports with configurable intervals
+- ✅ Manual import via console command
+- ✅ Product activation/deactivation based on stock status
+- ✅ Two stock update methods: absolute and normal
+- ✅ Automatic file backup with configurable retention
+- ✅ Stock aggregation for duplicate product numbers
+- ✅ Comprehensive logging and error handling
+- ✅ Compatible with Shopware 6.6.10 - 6.7.x
 
-- Import stock levels from CSV files
-- Support for local files and SFTP
-- Automatic aggregation of duplicate article numbers
-- Product activation/deactivation support
-- Choice between absolute and normal stock levels
-- Automatic import at configurable intervals
-- Backup of all processed CSV files
+## Requirements
 
-### Installation
+- Shopware 6.6.10 or higher (up to 6.7.x)
+- PHP 8.3 or higher
+- phpseclib/phpseclib ^3.0 (for SFTP functionality)
 
-1. Install the plugin:
-```bash
-composer require act/stock-importer
-bin/console plugin:refresh
-bin/console plugin:install --activate ActStockImporter
+## Installation
+
+1. Download or clone this plugin into your `custom/plugins/` directory
+2. Install and activate the plugin via CLI:
+   ```bash
+   bin/console plugin:refresh
+   bin/console plugin:install --activate ActStockImporter
+   bin/console cache:clear
+   ```
+
+## Configuration
+
+1. Go to Admin Panel → Settings → System → Plugins
+2. Find "Actualize: Stock Importer" and click on the three dots
+3. Click "Config" to access plugin settings
+
+### Configuration Options
+
+- **Import Method**: Choose between local directory or SFTP server
+- **Stock Update Method**:
+  - `normal`: Updates only stock field
+  - `absolute`: Updates both stock and availableStock fields
+- **Scheduled Import**: Enable/disable automatic imports
+- **Import Interval**: Set interval in minutes for automatic imports
+- **Backup Retention**: Number of days to keep backup files
+- **SFTP Settings** (if using SFTP method):
+  - Host, Port, Username, Password
+  - Remote directory path
+
+## CSV File Format
+
+The plugin expects CSV files with semicolon (`;`) as delimiter and the following structure:
+
+```csv
+Product Number;Stock;Active
+ABC-123;50;1
+XYZ-456;0;0
+DEF-789;25;1
 ```
 
-2. Clear cache:
-```bash
-bin/console cache:clear
-```
+**Columns:**
+- `Product Number`: The product's article number in Shopware
+- `Stock`: Stock quantity (integer)
+- `Active`: Product activation status (1 = active, 0 = inactive)
 
-### Configuration
+## How it works
 
-#### Import Settings
-- Choose between local import and SFTP
-- Stock update method (Absolute/Normal)
-  - Absolute: Sets both stock fields to the same value
-  - Normal: Updates regular stock, available stock is calculated by Shopware
+### Local Directory Method
+1. **File Placement**: Place CSV files in the `_act_stockimporter` directory in your project root
+2. **Processing**: Files are processed in order of modification time (oldest first)
+3. **Backup**: Processed files are moved to `_act_stockimporter/backup` with timestamp prefix
+4. **Cleanup**: Old backup files are automatically deleted based on retention settings
 
-#### SFTP Settings (optional)
-- Host
-- Port (default: 22)
-- Username
-- Password
-- File path
+### SFTP Method
+1. **File Download**: Plugin connects to SFTP server and downloads CSV files
+2. **Processing**: Downloaded files are processed locally
+3. **Cleanup**: Files are deleted from SFTP server after successful download
+4. **Backup**: Same local backup process as directory method
 
-#### CSV Settings
-- Delimiter (default: ;)
-- Encoding (UTF-8 or ISO-8859-1)
+### Stock Processing
+1. **Aggregation**: If multiple rows exist for the same product number, stock quantities are summed
+2. **Activation**: If any row for a product is marked as active, the product remains active
+3. **Update**: Products are updated with new stock levels and activation status
+4. **Logging**: All operations are logged with detailed information
 
-#### Automatic Import
-- Enable/disable automatic import
-- Configurable interval (5 minutes to daily)
+## Manual Import
 
-### CSV Format
+You can trigger imports manually using the console command:
 
-The CSV file must have the following format:
-```
-articlenumber;stock;active
-ABC123;10;1
-DEF456;5;0
-```
-
-Fields:
-- articlenumber: Product number in Shopware
-- stock: Integer value
-- active: 1 for active, 0 for inactive
-
-Example scenarios:
-```
-ABC123;10;1    # Set stock to 10, product active
-DEF456;5;0     # Set stock to 5, product inactive
-ABC123;3;1     # Will be added to previous stock (13 total)
-```
-
-### Usage
-
-#### Manual Import
 ```bash
 bin/console act:stock:import
 ```
 
-#### Automatic Import
-The automatic import runs according to the plugin configuration.
+## Technical Details
 
-#### Import Directory
-Local CSV files must be placed in the `_act_stockimporter` directory in the Shopware root.
-Processed files are automatically moved to the `backup` subdirectory with a timestamp.
+### Events and Scheduling
+- Uses Shopware's scheduled task system for automatic imports
+- Task interval is dynamically configurable through admin settings
+- Supports both immediate execution and scheduled processing
 
-#### File Processing
-1. Files are processed in order of discovery
-2. Duplicate article numbers in a file have their stock levels aggregated
-3. The active status is set based on the last occurrence in the file
-4. After processing, files are moved to backup with timestamp
+### File Processing
+- CSV parsing with semicolon delimiter
+- Automatic header row detection and skipping
+- Error handling for malformed files
+- Support for different file encodings
 
-### Logging
+### Stock Update Methods
+- **Normal**: Updates only the `stock` field
+- **Absolute**: Updates both `stock` and `availableStock` fields for complete inventory control
 
-The plugin logs all actions in the Shopware log:
-- Found CSV files
-- Import status
-- SFTP connections
-- Errors and warnings
+### Backup and Retention
+- Automatic backup of processed files with timestamp
+- Configurable retention period (default: 30 days)
+- Automatic cleanup of old backup files
 
-### Support
+## File Structure
 
-For questions or issues, please create an issue in our repository or contact support@act.de
+```
+ActStockImporter/
+├── composer.json
+├── README.md
+├── src/
+│   ├── ActStockImporter.php
+│   ├── Command/
+│   │   └── ImportStockCommand.php
+│   ├── Resources/
+│   │   ├── config/
+│   │   │   ├── config.xml
+│   │   │   └── services.xml
+│   │   └── import/
+│   │       └── example_stock.csv
+│   ├── Scheduled/
+│   │   ├── StockImportTask.php
+│   │   └── StockImportTaskHandler.php
+│   └── Service/
+│       ├── FileHandlerService.php
+│       └── StockImportService.php
+```
+
+## Development
+
+### Building/Testing
+After making changes:
+```bash
+bin/console cache:clear
+bin/console scheduled-task:run
+```
+
+### Debugging
+- Check log files for import operations and errors
+- Enable Shopware's debug mode for detailed error information
+- Use the manual import command for testing
+
+## Example Usage
+
+1. **Local Directory Setup**:
+   - Enable local directory import method
+   - Place CSV files in `_act_stockimporter/`
+   - Files are processed automatically or manually
+
+2. **SFTP Integration**:
+   - Configure SFTP connection details
+   - Set up automated file upload to SFTP server
+   - Plugin downloads and processes files automatically
+
+3. **Scheduled Processing**:
+   - Enable scheduled imports
+   - Set appropriate interval (e.g., 5 minutes)
+   - Monitor logs for successful operations
+
+## Compatibility
+
+- **Shopware Version**: 6.6.10 - 6.7.x
+- **PHP Version**: 8.3+
+- **Dependencies**: phpseclib/phpseclib ^3.0
+- **Template Compatibility**: Uses Shopware 6.6+ plugin structure
+
+## Support
+
+For issues and feature requests, please use the GitHub issue tracker.
+
+## License
+
+This plugin is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Credits
+
+Developed by Actualize
 
 ---
 
-## Deutsch
-
-Ein Shopware 6 Plugin zum Import von Lagerbeständen über CSV-Dateien, entweder lokal oder via SFTP.
-
-### Funktionen
-
-- Import von Lagerbeständen aus CSV-Dateien
-- Unterstützung für lokale Dateien und SFTP
-- Automatische Summierung von mehrfachen Artikelnummern
-- Aktivierung/Deaktivierung von Artikeln
-- Wahl zwischen absolutem und normalem Bestand
-- Automatischer Import in konfigurierbaren Intervallen
-- Backup aller verarbeiteten CSV-Dateien
-
-### Installation
-
-1. Plugin installieren:
-```bash
-composer require act/stock-importer
-bin/console plugin:refresh
-bin/console plugin:install --activate ActStockImporter
-```
-
-2. Cache leeren:
-```bash
-bin/console cache:clear
-```
-
-### Konfiguration
-
-#### Import-Einstellungen
-- Wahl zwischen lokalem Import und SFTP
-- Bestandsart wählbar (Absolut/Normal)
-  - Absolut: Setzt beide Bestandsfelder auf den gleichen Wert
-  - Normal: Aktualisiert den regulären Bestand, verfügbarer Bestand wird von Shopware berechnet
-
-#### SFTP-Einstellungen (optional)
-- Host
-- Port (Standard: 22)
-- Benutzername
-- Passwort
-- Dateipfad
-
-#### CSV-Einstellungen
-- Trennzeichen (Standard: ;)
-- Kodierung (UTF-8 oder ISO-8859-1)
-
-#### Automatischer Import
-- Aktivierung/Deaktivierung des automatischen Imports
-- Konfigurierbares Intervall (5 Minuten bis täglich)
-
-### CSV-Format
-
-Die CSV-Datei muss folgendes Format haben:
-```
-artikelnummer;bestand;aktiv
-ABC123;10;1
-DEF456;5;0
-```
-
-Felder:
-- artikelnummer: Artikelnummer in Shopware
-- bestand: Ganzzahl
-- aktiv: 1 für aktiv, 0 für inaktiv
-
-Beispielszenarien:
-```
-ABC123;10;1    # Bestand auf 10 setzen, Artikel aktiv
-DEF456;5;0     # Bestand auf 5 setzen, Artikel inaktiv
-ABC123;3;1     # Wird zum vorherigen Bestand addiert (13 gesamt)
-```
-
-### Verwendung
-
-#### Manueller Import
-```bash
-bin/console act:stock:import
-```
-
-#### Automatischer Import
-Der automatische Import läuft entsprechend der Plugin-Konfiguration.
-
-#### Import-Verzeichnis
-Lokale CSV-Dateien müssen im Verzeichnis `_act_stockimporter` im Shopware-Root abgelegt werden.
-Verarbeitete Dateien werden automatisch in den Unterordner `backup` mit Zeitstempel verschoben.
-
-#### Dateiverarbeitung
-1. Dateien werden in der Reihenfolge der Entdeckung verarbeitet
-2. Mehrfache Artikelnummern in einer Datei werden summiert
-3. Der Aktiv-Status wird basierend auf dem letzten Vorkommen in der Datei gesetzt
-4. Nach der Verarbeitung werden die Dateien mit Zeitstempel ins Backup verschoben
-
-### Protokollierung
-
-Das Plugin protokolliert alle Aktionen im Shopware-Log:
-- Gefundene CSV-Dateien
-- Import-Status
-- SFTP-Verbindungen
-- Fehler und Warnungen
-
-### Unterstützung
-
-Bei Fragen oder Problemen erstellen Sie bitte ein Issue in unserem Repository oder kontaktieren Sie support@act.de
+Made with ❤️ for the Shopware Community
