@@ -4,16 +4,16 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 
 ## Features
 
-- ✅ Import stock levels from CSV files
-- ✅ Support for both local directory and SFTP server as data source
-- ✅ Scheduled automatic imports with configurable intervals
-- ✅ Manual import via console command
-- ✅ Product activation/deactivation based on stock status
-- ✅ Two stock update methods: absolute and normal
-- ✅ Automatic file backup with configurable retention
-- ✅ Stock aggregation for duplicate product numbers
-- ✅ Comprehensive logging and error handling
-- ✅ Compatible with Shopware 6.6.10 - 6.7.x
+- Import stock levels from CSV files
+- Support for both local directory and SFTP server as data source
+- Scheduled automatic imports with configurable intervals
+- Manual import via console command
+- Product activation/deactivation based on stock status
+- Two stock update methods: absolute and normal
+- Automatic file backup with configurable retention
+- Stock aggregation for duplicate product numbers
+- Comprehensive logging and error handling
+- Compatible with Shopware 6.6.10 - 6.7.x
 
 ## Requirements
 
@@ -115,30 +115,6 @@ bin/console act:stock:import
 - Automatic backup of processed files with timestamp
 - Configurable retention period (default: 30 days)
 - Automatic cleanup of old backup files
-
-## File Structure
-
-```
-ActStockImporter/
-├── composer.json
-├── README.md
-├── src/
-│   ├── ActStockImporter.php
-│   ├── Command/
-│   │   └── ImportStockCommand.php
-│   ├── Resources/
-│   │   ├── config/
-│   │   │   ├── config.xml
-│   │   │   └── services.xml
-│   │   └── import/
-│   │       └── example_stock.csv
-│   ├── Scheduled/
-│   │   ├── StockImportTask.php
-│   │   └── StockImportTaskHandler.php
-│   └── Service/
-│       ├── FileHandlerService.php
-│       └── StockImportService.php
-```
 
 ## Development
 
