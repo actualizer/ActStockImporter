@@ -13,6 +13,6 @@ class StockImportTask extends ScheduledTask
 
     public static function getDefaultInterval(): int
     {
-        return 120; // 2 minutes
+        return 300; // 5 minutes (Shopware minimum for scheduled tasks)
     }
 }

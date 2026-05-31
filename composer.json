@@ -1,18 +1,25 @@
 {
     "name": "act/stock-importer",
     "description": "Import stock levels from CSV files",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "type": "shopware-platform-plugin",
     "license": "MIT",
     "authors": [
         {
-            "name": "ACT"
+            "name": "Actualize",
+            "email": "plugin@actualize.de",
+            "homepage": "https://actualize.de",
+            "role": "Developer"
         }
     ],
     "require": {
         "php": ">=8.3",
         "shopware/core": ">=6.6.10 <6.8.0",
         "phpseclib/phpseclib": "^3.0"
+    },
+    "scripts": {
+        "format": "docker run --rm -v $(pwd):/ext shopware/shopware-cli:latest extension format /ext",
+        "check": "docker run --rm -v $(pwd):/ext shopware/shopware-cli:latest extension validate --full /ext"
     },
     "extra": {
         "shopware-plugin-class": "ActStockImporter\\ActStockImporter",
@@ -21,8 +28,16 @@
             "en-GB": "Actualize: Stock Importer"
         },
         "description": {
-            "de-DE": "Importiert Lagerbestände aus CSV-Dateien",
-            "en-GB": "Imports stock levels from CSV files"
+            "de-DE": "Importiert Lagerbestände automatisch aus CSV-Dateien per lokalem Verzeichnis oder SFTP, aktualisiert Bestand und Aktiv-Status der Produkte und sichert verarbeitete Dateien.",
+            "en-GB": "Automatically imports stock levels from CSV files via a local directory or SFTP, updates product stock and active status and moves processed files to a backup folder."
+        },
+        "manufacturerLink": {
+            "de-DE": "https://actualize.de",
+            "en-GB": "https://actualize.de"
+        },
+        "supportLink": {
+            "de-DE": "https://github.com/actualizer/ActStockImporter/issues",
+            "en-GB": "https://github.com/actualizer/ActStockImporter/issues"
         }
     },
     "autoload": {

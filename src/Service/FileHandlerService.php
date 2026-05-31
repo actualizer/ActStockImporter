@@ -39,6 +39,8 @@ class FileHandlerService
 
     /**
      * Parse CSV file and aggregate stock data
+     *
+     * @return array<string, array{stock: int, active: bool}>
      */
     public function parseCSV(string $filePath): array
     {
@@ -53,7 +55,7 @@ class FileHandlerService
                     continue;
                 }
 
-                $articleNumber = $data[0];
+                $articleNumber = (string)$data[0];
                 $stock = (int)$data[1];
                 $active = (bool)$data[2];
 
@@ -110,10 +112,14 @@ class FileHandlerService
             return;
         }
 
-        $retentionDays = (int)$this->systemConfigService->get('ActStockImporter.config.backupRetentionDays') ?? 30;
+        $retentionRaw = $this->systemConfigService->get('ActStockImporter.config.backupRetentionDays');
+        $retentionDays = is_numeric($retentionRaw) ? (int)$retentionRaw : 30;
         $cutoffTime = strtotime("-{$retentionDays} days");
 
         $files = glob($backupDir . '/*.csv');
+        if ($files === false) {
+            return;
+        }
         $deletedCount = 0;
 
         foreach ($files as $file) {
@@ -137,6 +143,9 @@ class FileHandlerService
         }
     }
 
+    /**
+     * @return list<string>
+     */
     private function getStockFilesFromLocal(): array
     {
         $importDir = $this->projectDir . '/_act_stockimporter';
@@ -157,13 +166,16 @@ class FileHandlerService
         return $files;
     }
 
+    /**
+     * @return list<string>
+     */
     private function getStockFilesFromSftp(): array
     {
-        $host = $this->systemConfigService->get('ActStockImporter.config.sftpHost');
-        $port = (int)$this->systemConfigService->get('ActStockImporter.config.sftpPort');
-        $username = $this->systemConfigService->get('ActStockImporter.config.sftpUsername');
-        $password = $this->systemConfigService->get('ActStockImporter.config.sftpPassword');
-        $remotePath = $this->systemConfigService->get('ActStockImporter.config.sftpPath');
+        $host = $this->systemConfigService->getString('ActStockImporter.config.sftpHost');
+        $port = $this->systemConfigService->getInt('ActStockImporter.config.sftpPort');
+        $username = $this->systemConfigService->getString('ActStockImporter.config.sftpUsername');
+        $password = $this->systemConfigService->getString('ActStockImporter.config.sftpPassword');
+        $remotePath = $this->systemConfigService->getString('ActStockImporter.config.sftpPath');
 
         if (!$host || !$username || !$password || !$remotePath) {
             $this->logger->error('Actualize Stock Importer: Missing SFTP configuration');

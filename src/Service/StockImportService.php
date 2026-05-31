@@ -2,11 +2,11 @@
 
 namespace ActStockImporter\Service;
 
-use Shopware\Core\Content\Product\ProductEntity;
+use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Psr\Log\LoggerInterface;
 
@@ -16,11 +16,15 @@ use Psr\Log\LoggerInterface;
  */
 class StockImportService
 {
+    /** @var EntityRepository<ProductCollection> */
     private EntityRepository $productRepository;
     private SystemConfigService $systemConfigService;
     private FileHandlerService $fileHandler;
     private LoggerInterface $logger;
 
+    /**
+     * @param EntityRepository<ProductCollection> $productRepository
+     */
     public function __construct(
         EntityRepository $productRepository,
         SystemConfigService $systemConfigService,
@@ -67,42 +71,52 @@ class StockImportService
 
     /**
      * Update products with new stock data
+     *
+     * @param array<string, array{stock: int, active: bool}> $stocks
      */
     private function updateProducts(array $stocks): void
     {
-        $context = Context::createDefaultContext();
+        $context = Context::createCLIContext();
         $updateMethod = $this->systemConfigService->get('ActStockImporter.config.stockUpdateMethod');
 
-        foreach ($stocks as $articleNumber => $data) {
+        // Resolve and write in chunks to avoid N:1 queries and bounded memory use.
+        foreach (array_chunk($stocks, 500, true) as $chunk) {
             $criteria = new Criteria();
-            $criteria->addFilter(new EqualsFilter('productNumber', $articleNumber));
-            
-            /** @var ProductEntity|null $product */
-            $product = $this->productRepository->search($criteria, $context)->first();
-            
-            if (!$product) {
-                $this->logger->warning('ACT Stock Importer: Product not found', ['articleNumber' => $articleNumber]);
-                continue;
+            $criteria->addFilter(new EqualsAnyFilter('productNumber', array_keys($chunk)));
+
+            $idByNumber = [];
+            foreach ($this->productRepository->search($criteria, $context)->getEntities() as $product) {
+                $idByNumber[$product->getProductNumber()] = $product->getId();
             }
 
-            $updateData = [
-                'id' => $product->getId(),
-                'active' => $data['active'],
-            ];
+            $updates = [];
+            foreach ($chunk as $articleNumber => $data) {
+                if (!isset($idByNumber[$articleNumber])) {
+                    $this->logger->warning('ACT Stock Importer: Product not found', ['articleNumber' => $articleNumber]);
+                    continue;
+                }
 
-            if ($updateMethod === 'absolute') {
-                $updateData['stock'] = $data['stock'];
-                $updateData['availableStock'] = $data['stock'];
-            } else {
-                $updateData['stock'] = $data['stock'];
+                $updateData = [
+                    'id' => $idByNumber[$articleNumber],
+                    'active' => $data['active'],
+                    'stock' => $data['stock'],
+                ];
+
+                if ($updateMethod === 'absolute') {
+                    $updateData['availableStock'] = $data['stock'];
+                }
+
+                $updates[] = $updateData;
+                $this->logger->info('ACT Stock Importer: Updated product', [
+                    'articleNumber' => $articleNumber,
+                    'stock' => $data['stock'],
+                    'active' => $data['active']
+                ]);
             }
 
-            $this->productRepository->update([$updateData], $context);
-            $this->logger->info('ACT Stock Importer: Updated product', [
-                'articleNumber' => $articleNumber,
-                'stock' => $data['stock'],
-                'active' => $data['active']
-            ]);
+            if ($updates !== []) {
+                $this->productRepository->update($updates, $context);
+            }
         }
     }
 }

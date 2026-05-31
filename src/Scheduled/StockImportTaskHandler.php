@@ -3,6 +3,7 @@
 namespace ActStockImporter\Scheduled;
 
 use ActStockImporter\Service\StockImportService;
+use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTaskCollection;
 use Shopware\Core\Framework\MessageQueue\ScheduledTask\ScheduledTaskHandler;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -20,21 +21,25 @@ class StockImportTaskHandler extends ScheduledTaskHandler
     private SystemConfigService $systemConfigService;
     private StockImportService $stockImportService;
     private LoggerInterface $logger;
-    protected EntityRepository $scheduledTaskRepository;
 
+    /**
+     * @param EntityRepository<ScheduledTaskCollection> $scheduledTaskRepository
+     */
     public function __construct(
         EntityRepository $scheduledTaskRepository,
         SystemConfigService $systemConfigService,
         StockImportService $stockImportService,
         LoggerInterface $logger
     ) {
-        parent::__construct($scheduledTaskRepository);
-        $this->scheduledTaskRepository = $scheduledTaskRepository;
+        parent::__construct($scheduledTaskRepository, $logger);
         $this->systemConfigService = $systemConfigService;
         $this->stockImportService = $stockImportService;
         $this->logger = $logger;
     }
 
+    /**
+     * @return iterable<class-string>
+     */
     public static function getHandledMessages(): iterable
     {
         return [StockImportTask::class];
@@ -61,8 +66,9 @@ class StockImportTaskHandler extends ScheduledTaskHandler
         }
 
         // Update task interval from config (convert minutes to seconds)
-        $intervalMinutes = $this->systemConfigService->get('ActStockImporter.config.scheduledImportInterval') ?? 2;
-        $intervalSeconds = (int)($intervalMinutes * 60);
+        $intervalRaw = $this->systemConfigService->get('ActStockImporter.config.scheduledImportInterval');
+        $intervalMinutes = is_numeric($intervalRaw) ? (int) $intervalRaw : 2;
+        $intervalSeconds = $intervalMinutes * 60;
         $this->updateTaskInterval($intervalSeconds);
 
         try {
@@ -82,7 +88,7 @@ class StockImportTaskHandler extends ScheduledTaskHandler
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('name', StockImportTask::getTaskName()));
 
-        $taskId = $this->scheduledTaskRepository->searchIds($criteria, Context::createDefaultContext())->firstId();
+        $taskId = $this->scheduledTaskRepository->searchIds($criteria, Context::createCLIContext())->firstId();
 
         if ($taskId) {
             $this->scheduledTaskRepository->update([
@@ -90,7 +96,7 @@ class StockImportTaskHandler extends ScheduledTaskHandler
                     'id' => $taskId,
                     'runInterval' => $interval,
                 ]
-            ], Context::createDefaultContext());
+            ], Context::createCLIContext());
             $this->logger->info('Actualize StockImportTask: Updated interval to ' . ($interval / 60) . ' minutes (' . $interval . ' seconds)');
         }
     }

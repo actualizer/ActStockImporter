@@ -1,0 +1,32 @@
+parameters:
+    level: 8
+    # PHPDoc types are HINTS, not GUARANTEES. Lazy DAL hydration, framework
+    # version drift, and subscriber ordering can violate them at runtime.
+    # Treat them as uncertain so defensive `?->`/`?? default`/`is_*()` guards
+    # are NOT flagged as redundant. Defense stays.
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - src/
+    excludePaths:
+        - src/Migration/*
+    ignoreErrors:
+        # This plugin's purpose is to ingest CSV stock files from a local drop
+        # directory (or SFTP) and archive processed files into a local backup
+        # folder. Local disk writes are intentional and load-bearing here;
+        # sys_get_temp_dir() would break the feature. shopware-cli's store
+        # rule does not apply to this internal/SFTP importer.
+        -
+            identifier: shopware.forbidLocalDiskWrite
+            paths:
+                - src/ActStockImporter.php
+                - src/Service/FileHandlerService.php
+        # updateProducts() resolves and writes in chunks of 500 (one search +
+        # one update per chunk). The repository calls are inside the chunk loop,
+        # which this static rule cannot distinguish from a per-row N:1 loop, but
+        # the call count is bounded to ceil(rows / 500), not one query per row.
+        -
+            identifier: shopware.noEntityRepositoryInLoop
+            path: src/Service/StockImportService.php
+    # The shopware.* rules only exist in shopware-cli's bundled PHPStan, not in
+    # the project-root vendor PHPStan, so the ignore above is unmatched locally.
+    reportUnmatchedIgnoredErrors: false

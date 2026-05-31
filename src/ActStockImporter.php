@@ -8,20 +8,9 @@ use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class ActStockImporter extends Plugin
 {
-    public function build(ContainerBuilder $container): void
-    {
-        parent::build($container);
-
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
-        $loader->load('services.xml');
-    }
-
     public function getMigrationNamespace(): string
     {
         return 'ActStockImporter\Migration';
@@ -41,12 +30,23 @@ class ActStockImporter extends Plugin
     {
         parent::install($installContext);
 
+        $container = $this->container;
+        if ($container === null) {
+            return;
+        }
+
         // Get configured interval or use default
-        $configService = $this->container->get(SystemConfigService::class);
-        $interval = $configService->get('ActStockImporter.config.scheduledImportInterval') ?? 120;
+        $configService = $container->get(SystemConfigService::class);
+        if (!$configService instanceof SystemConfigService) {
+            return;
+        }
+        $interval = $configService->get('ActStockImporter.config.scheduledImportInterval') ?? 300;
 
         // Register scheduled task
-        $taskRepository = $this->container->get('scheduled_task.repository');
+        $taskRepository = $container->get('scheduled_task.repository');
+        if (!$taskRepository instanceof EntityRepository) {
+            return;
+        }
         $taskRepository->create([
             [
                 'name' => StockImportTask::getTaskName(),
@@ -59,7 +59,11 @@ class ActStockImporter extends Plugin
         ], $installContext->getContext());
 
         // Create example directory and copy example file
-        $importDir = $this->container->getParameter('kernel.project_dir') . '/_act_stockimporter';
+        $projectDir = $container->getParameter('kernel.project_dir');
+        if (!is_string($projectDir)) {
+            return;
+        }
+        $importDir = $projectDir . '/_act_stockimporter';
         if (!file_exists($importDir)) {
             mkdir($importDir, 0755, true);
         }
@@ -72,11 +76,15 @@ class ActStockImporter extends Plugin
 
     public function uninstall(UninstallContext $uninstallContext): void
     {
-        if (!$uninstallContext->keepUserData()) {
+        $container = $this->container;
+        if (!$uninstallContext->keepUserData() && $container !== null) {
             // Clean up import directory
-            $importDir = $this->container->getParameter('kernel.project_dir') . '/_act_stockimporter';
-            if (is_dir($importDir)) {
-                $this->removeDirectory($importDir);
+            $projectDir = $container->getParameter('kernel.project_dir');
+            if (is_string($projectDir)) {
+                $importDir = $projectDir . '/_act_stockimporter';
+                if (is_dir($importDir)) {
+                    $this->removeDirectory($importDir);
+                }
             }
         }
 
