@@ -1,7 +1,7 @@
 {
     "name": "actualizer/stock-importer",
     "description": "Import stock levels from CSV files",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "type": "shopware-platform-plugin",
     "license": "MIT",
     "authors": [

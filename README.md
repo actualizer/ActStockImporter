@@ -13,12 +13,12 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 - Automatic file backup with configurable retention
 - Stock aggregation for duplicate product numbers
 - Comprehensive logging and error handling
-- Compatible with Shopware 6.6.10 - 6.7.x
+- Compatible with Shopware 6.7
 
 ## Requirements
 
-- Shopware 6.6.10 or higher (up to 6.7.x)
-- PHP 8.3 or higher
+- Shopware 6.7 or higher
+- PHP 8.4 or higher
 - phpseclib/phpseclib ^3.0 (for SFTP functionality)
 
 ## Installation
@@ -149,10 +149,10 @@ bin/console scheduled-task:run
 
 ## Compatibility
 
-- **Shopware Version**: 6.6.10 - 6.7.x
-- **PHP Version**: 8.3+
+- **Shopware Version**: 6.7
+- **PHP Version**: 8.4+
 - **Dependencies**: phpseclib/phpseclib ^3.0
-- **Template Compatibility**: Uses Shopware 6.6+ plugin structure
+- **Template Compatibility**: Uses Shopware 6.7 plugin structure
 
 ## Support
 
