@@ -1,7 +1,7 @@
 {
     "name": "actualizer/stock-importer",
     "description": "Import stock levels from CSV files",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "type": "shopware-platform-plugin",
     "license": "MIT",
     "authors": [
@@ -13,8 +13,8 @@
         }
     ],
     "require": {
-        "php": ">=8.3",
-        "shopware/core": ">=6.6.10 <6.8.0",
+        "php": ">=8.4",
+        "shopware/core": ">=6.7 <6.8",
         "phpseclib/phpseclib": "^3.0"
     },
     "scripts": {
