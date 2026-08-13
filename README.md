@@ -12,6 +12,7 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 - Two stock update methods: absolute and normal
 - Automatic file backup with configurable retention
 - Stock aggregation for duplicate product numbers
+- Change detection: only products whose stock or active status actually changed are written
 - Comprehensive logging and error handling
 - Compatible with Shopware 6.7
 
@@ -94,8 +95,9 @@ DEF-789;25;1
 ### Stock Processing
 1. **Aggregation**: If multiple rows exist for the same product number, stock quantities are summed
 2. **Activation**: If any row for a product is marked as active, the product remains active
-3. **Update**: Products are updated with new stock levels and activation status
-4. **Logging**: All operations are logged with detailed information
+3. **Change detection**: The current stock and active status are compared against the imported values. Rows that match the current state are skipped, so a file that repeats unchanged stock levels causes no writes at all
+4. **Update**: Only the remaining products are written with new stock levels and activation status
+5. **Logging**: Changed products are logged individually with their previous values, followed by a per-file summary (checked, updated, unchanged, not found)
 
 ## Manual Import
 
@@ -121,6 +123,7 @@ bin/console act:stock:import
 ### Stock Update Methods
 - **Normal**: Updates only the `stock` field
 - **Absolute**: Updates both `stock` and `availableStock` fields for complete inventory control
+- `availableStock` is not part of the change detection, because Shopware maintains it itself (open orders reserve stock). It is written along with every real change, but a differing `availableStock` alone does not trigger an update
 
 ### Backup and Retention
 - Automatic backup of processed files with timestamp

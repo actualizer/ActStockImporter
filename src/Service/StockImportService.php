@@ -44,7 +44,7 @@ class StockImportService
      * 1. Get all stock files (local or SFTP)
      * 2. Process each file in order (oldest first)
      * 3. Parse CSV and aggregate stock for duplicate product numbers
-     * 4. Update each product's stock and active status
+     * 4. Update the products whose stock or active status actually changed
      * 5. Move processed file to backup
      */
     public function import(): void
@@ -64,40 +64,73 @@ class StockImportService
                 continue;
             }
 
-            $this->updateProducts($stocks);
+            $result = $this->updateProducts($stocks);
+            $this->logger->info('ACT Stock Importer: File processed', [
+                'file' => basename($filePath),
+                'checked' => $result['checked'],
+                'updated' => $result['updated'],
+                'unchanged' => $result['unchanged'],
+                'notFound' => $result['notFound'],
+            ]);
+
             $this->fileHandler->backupFile($filePath);
         }
     }
 
     /**
-     * Update products with new stock data
+     * Update the products whose stock or active status differs from the imported data.
+     *
+     * Unchanged products are skipped: writing them would produce no new value but
+     * still trigger the product indexer, cache invalidation and (if enabled) a
+     * search reindex for every row of the file.
      *
      * @param array<string, array{stock: int, active: bool}> $stocks
+     *
+     * @return array{checked: int, updated: int, unchanged: int, notFound: int}
      */
-    private function updateProducts(array $stocks): void
+    private function updateProducts(array $stocks): array
     {
         $context = Context::createCLIContext();
         $updateMethod = $this->systemConfigService->get('ActStockImporter.config.stockUpdateMethod');
+
+        $updatedCount = 0;
+        $unchangedCount = 0;
+        $notFoundCount = 0;
 
         // Resolve and write in chunks to avoid N:1 queries and bounded memory use.
         foreach (array_chunk($stocks, 500, true) as $chunk) {
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsAnyFilter('productNumber', array_keys($chunk)));
 
-            $idByNumber = [];
+            $currentByNumber = [];
             foreach ($this->productRepository->search($criteria, $context)->getEntities() as $product) {
-                $idByNumber[$product->getProductNumber()] = $product->getId();
+                $currentByNumber[$product->getProductNumber()] = [
+                    'id' => $product->getId(),
+                    'stock' => $product->getStock(),
+                    'active' => $product->getActive(),
+                ];
             }
 
             $updates = [];
             foreach ($chunk as $articleNumber => $data) {
-                if (!isset($idByNumber[$articleNumber])) {
+                if (!isset($currentByNumber[$articleNumber])) {
                     $this->logger->warning('ACT Stock Importer: Product not found', ['articleNumber' => $articleNumber]);
+                    ++$notFoundCount;
+                    continue;
+                }
+
+                $current = $currentByNumber[$articleNumber];
+
+                // availableStock is deliberately not compared: Shopware maintains it
+                // itself (open orders reserve stock), so it would differ on nearly every
+                // run and defeat the skip. It is still written along with a real change.
+                if ($current['stock'] === $data['stock'] && $current['active'] === $data['active']) {
+                    ++$unchangedCount;
                     continue;
                 }
 
                 $updateData = [
-                    'id' => $idByNumber[$articleNumber],
+                    'id' => $current['id'],
                     'active' => $data['active'],
                     'stock' => $data['stock'],
                 ];
@@ -107,10 +140,14 @@ class StockImportService
                 }
 
                 $updates[] = $updateData;
+                ++$updatedCount;
+
                 $this->logger->info('ACT Stock Importer: Updated product', [
                     'articleNumber' => $articleNumber,
                     'stock' => $data['stock'],
-                    'active' => $data['active']
+                    'active' => $data['active'],
+                    'previousStock' => $current['stock'],
+                    'previousActive' => $current['active'],
                 ]);
             }
 
@@ -118,5 +155,12 @@ class StockImportService
                 $this->productRepository->update($updates, $context);
             }
         }
+
+        return [
+            'checked' => count($stocks),
+            'updated' => $updatedCount,
+            'unchanged' => $unchangedCount,
+            'notFound' => $notFoundCount,
+        ];
     }
 }
