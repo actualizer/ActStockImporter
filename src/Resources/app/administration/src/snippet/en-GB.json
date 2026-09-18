@@ -1,0 +1,18 @@
+{
+    "act-stock-importer": {
+        "settings": {
+            "info": {
+                "howTo": {
+                    "title": "How it works",
+                    "item1": "Expected are CSV files separated by semicolons: product number; stock; active (1 or 0). The first line always counts as the header, duplicate product numbers are added up.",
+                    "item2": "The third column also controls visibility: a 0 sets the product inactive.",
+                    "item3": "Nothing is imported until <strong>Enable automatic import</strong> is switched on and the cron is running. Until then, dropped files stay where they are.",
+                    "item4": "With <strong>Local Directory</strong> the files belong in the folder “_act_stockimporter” in the Shopware root directory; with <strong>SFTP Server</strong> they are fetched and deleted on the server. Processed files are moved to the “backup” subfolder.",
+                    "item5": "The file value replaces the stock level from which Shopware has already deducted open orders. The file should therefore deliver the available quantity, not the physical stock on hand."
+                },
+                "description": "Automatically imports stock levels from CSV files via a local directory or SFTP, updates product stock and active status and moves processed files to a backup folder.",
+                "issues": "Problems or feature requests?"
+            }
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+  "base": "/bundles/actstockimporter/administration/",
+  "entryPoints": {
+    "act-stock-importer": {
+      "css": [
+        "/bundles/actstockimporter/administration/assets/act-stock-importer-CLA3sfDW.css"
+      ],
+      "dynamic": [],
+      "js": [
+        "/bundles/actstockimporter/administration/assets/act-stock-importer-T0GBWzPe.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}

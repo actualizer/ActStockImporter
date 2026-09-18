@@ -1,0 +1,11 @@
+{
+  "main.js": {
+    "file": "assets/act-stock-importer-T0GBWzPe.js",
+    "name": "act-stock-importer",
+    "src": "main.js",
+    "isEntry": true,
+    "css": [
+      "assets/act-stock-importer-CLA3sfDW.css"
+    ]
+  }
+}

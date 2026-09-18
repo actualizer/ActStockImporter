@@ -1,0 +1,18 @@
+{
+    "act-stock-importer": {
+        "settings": {
+            "info": {
+                "howTo": {
+                    "title": "So funktioniert's",
+                    "item1": "Erwartet werden CSV-Dateien mit Semikolon: Produktnummer; Bestand; Aktiv (1 oder 0). Die erste Zeile gilt immer als Kopfzeile, doppelte Produktnummern werden addiert.",
+                    "item2": "Die dritte Spalte steuert auch die Sichtbarkeit: Eine 0 schaltet das Produkt inaktiv.",
+                    "item3": "Importiert wird erst, wenn <strong>Automatischen Import aktivieren</strong> eingeschaltet ist und der Cron läuft. Bis dahin bleiben abgelegte Dateien liegen.",
+                    "item4": "Bei <strong>Lokales Verzeichnis</strong> gehören die Dateien in den Ordner „_act_stockimporter“ im Shopware-Hauptverzeichnis, bei <strong>SFTP Server</strong> werden sie abgeholt und auf dem Server gelöscht. Verarbeitete Dateien landen im Unterordner „backup“.",
+                    "item5": "Der Dateiwert ersetzt den Lagerbestand, in dem Shopware offene Bestellungen bereits abgezogen hat. Die Datei sollte deshalb den verfügbaren Bestand liefern, nicht den physischen Lagerbestand."
+                },
+                "description": "Importiert Lagerbestände automatisch aus CSV-Dateien per lokalem Verzeichnis oder SFTP, aktualisiert Bestand und Aktiv-Status der Produkte und sichert verarbeitete Dateien.",
+                "issues": "Probleme oder Feature-Wünsche?"
+            }
+        }
+    }
+}
