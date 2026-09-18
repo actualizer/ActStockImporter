@@ -48,9 +48,9 @@ class FileHandlerService
 
         if (($handle = fopen($filePath, "r")) !== false) {
             // Skip header row
-            fgetcsv($handle, 1000, ";");
+            fgetcsv($handle, 1000, ";", "\"", "\\");
 
-            while (($data = fgetcsv($handle, 1000, ";")) !== false) {
+            while (($data = fgetcsv($handle, 1000, ";", "\"", "\\")) !== false) {
                 if (count($data) < 3) {
                     continue;
                 }
