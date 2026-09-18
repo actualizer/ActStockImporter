@@ -9,7 +9,6 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 - Scheduled automatic imports with configurable intervals
 - Manual import via console command
 - Product activation/deactivation based on stock status
-- Two stock update methods: absolute and normal
 - Automatic file backup with configurable retention
 - Stock aggregation for duplicate product numbers
 - Change detection: only products whose stock or active status actually changed are written
@@ -52,9 +51,6 @@ bin/console cache:clear
 ### Configuration Options
 
 - **Import Method**: Choose between local directory or SFTP server
-- **Stock Update Method**:
-  - `normal`: Updates only stock field
-  - `absolute`: Updates both stock and availableStock fields
 - **Scheduled Import**: Enable/disable automatic imports
 - **Import Interval**: Set interval in minutes for automatic imports
 - **Backup Retention**: Number of days to keep backup files
@@ -120,10 +116,9 @@ bin/console act:stock:import
 - Error handling for malformed files
 - Support for different file encodings
 
-### Stock Update Methods
-- **Normal**: Updates only the `stock` field
-- **Absolute**: Updates both `stock` and `availableStock` fields for complete inventory control
-- `availableStock` is not part of the change detection, because Shopware maintains it itself (open orders reserve stock). It is written along with every real change, but a differing `availableStock` alone does not trigger an update
+### Stock Values
+- The file value is written to the `stock` field. Shopware mirrors it into `availableStock` on every write
+- Shopware deducts open orders from `stock` as soon as they are placed, so the file should deliver the available quantity rather than the physical stock on hand
 
 ### Backup and Retention
 - Automatic backup of processed files with timestamp

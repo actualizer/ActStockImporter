@@ -24,25 +24,6 @@
             </options>
             <defaultValue>local</defaultValue>
         </input-field>
-
-        <input-field type="single-select">
-            <name>stockUpdateMethod</name>
-            <label lang="de-DE">Lagerbestand Aktualisierung</label>
-            <label lang="en-GB">Stock Update Method</label>
-            <options>
-                <option>
-                    <id>normal</id>
-                    <name lang="de-DE">Normal (berücksichtigt offene Bestellungen)</name>
-                    <name lang="en-GB">Normal (considers pending orders)</name>
-                </option>
-                <option>
-                    <id>absolute</id>
-                    <name lang="de-DE">Absolut (ignoriert offene Bestellungen)</name>
-                    <name lang="en-GB">Absolute (ignores pending orders)</name>
-                </option>
-            </options>
-            <defaultValue>normal</defaultValue>
-        </input-field>
     </card>
 
     <card>

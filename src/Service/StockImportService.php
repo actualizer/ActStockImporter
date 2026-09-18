@@ -7,18 +7,16 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
-use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Psr\Log\LoggerInterface;
 
 /**
  * Service for importing stock data into Shopware.
- * Handles both stock update methods (absolute/normal) and product activation status.
+ * Updates product stock and activation status.
  */
 class StockImportService
 {
     /** @var EntityRepository<ProductCollection> */
     private EntityRepository $productRepository;
-    private SystemConfigService $systemConfigService;
     private FileHandlerService $fileHandler;
     private LoggerInterface $logger;
 
@@ -27,12 +25,10 @@ class StockImportService
      */
     public function __construct(
         EntityRepository $productRepository,
-        SystemConfigService $systemConfigService,
         FileHandlerService $fileHandler,
         LoggerInterface $logger
     ) {
         $this->productRepository = $productRepository;
-        $this->systemConfigService = $systemConfigService;
         $this->fileHandler = $fileHandler;
         $this->logger = $logger;
     }
@@ -91,7 +87,6 @@ class StockImportService
     private function updateProducts(array $stocks): array
     {
         $context = Context::createCLIContext();
-        $updateMethod = $this->systemConfigService->get('ActStockImporter.config.stockUpdateMethod');
 
         $updatedCount = 0;
         $unchangedCount = 0;
@@ -121,9 +116,8 @@ class StockImportService
 
                 $current = $currentByNumber[$articleNumber];
 
-                // availableStock is deliberately not compared: Shopware maintains it
-                // itself (open orders reserve stock), so it would differ on nearly every
-                // run and defeat the skip. It is still written along with a real change.
+                // availableStock is neither compared nor written: Shopware mirrors it
+                // from stock on every stock write.
                 if ($current['stock'] === $data['stock'] && $current['active'] === $data['active']) {
                     ++$unchangedCount;
                     continue;
@@ -134,10 +128,6 @@ class StockImportService
                     'active' => $data['active'],
                     'stock' => $data['stock'],
                 ];
-
-                if ($updateMethod === 'absolute') {
-                    $updateData['availableStock'] = $data['stock'];
-                }
 
                 $updates[] = $updateData;
                 ++$updatedCount;
