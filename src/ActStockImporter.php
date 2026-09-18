@@ -58,7 +58,7 @@ class ActStockImporter extends Plugin
             ]
         ], $installContext->getContext());
 
-        // Create example directory and copy example file
+        // Create the local import directory
         $projectDir = $container->getParameter('kernel.project_dir');
         if (!is_string($projectDir)) {
             return;
@@ -66,11 +66,6 @@ class ActStockImporter extends Plugin
         $importDir = $projectDir . '/_act_stockimporter';
         if (!file_exists($importDir)) {
             mkdir($importDir, 0755, true);
-        }
-
-        $exampleFile = __DIR__ . '/Resources/import/example_stock.csv';
-        if (file_exists($exampleFile)) {
-            copy($exampleFile, $importDir . '/example_stock.csv');
         }
     }
 
