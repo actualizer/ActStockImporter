@@ -58,7 +58,7 @@ class StockImportTaskHandler extends ScheduledTaskHandler
         $this->logger->info('Actualize Stock Import Task: Starting scheduled import');
 
         // Skip if automatic import is disabled
-        $isActive = $this->systemConfigService->get('ActStockImporter.config.scheduledImportActive');
+        $isActive = $this->systemConfigService->getBool('ActStockImporter.config.scheduledImportActive');
         $this->logger->info('Actualize Stock Import Task: Automatic import active: ' . ($isActive ? 'yes' : 'no'));
 
         if (!$isActive) {
@@ -90,7 +90,7 @@ class StockImportTaskHandler extends ScheduledTaskHandler
 
         $taskId = $this->scheduledTaskRepository->searchIds($criteria, Context::createCLIContext())->firstId();
 
-        if ($taskId) {
+        if ($taskId !== null) {
             $this->scheduledTaskRepository->update([
                 [
                     'id' => $taskId,

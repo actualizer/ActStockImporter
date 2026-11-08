@@ -123,7 +123,7 @@ class FileHandlerService
         $deletedCount = 0;
 
         foreach ($files as $file) {
-            $modTime = filemtime($file);
+            $modTime = (int) filemtime($file);
             if ($modTime < $cutoffTime) {
                 if (unlink($file)) {
                     $deletedCount++;
@@ -154,13 +154,13 @@ class FileHandlerService
         }
 
         $files = glob($importDir . '/*.csv');
-        if (empty($files)) {
+        if ($files === false || $files === []) {
             return [];
         }
 
         // Sort files by modification time (oldest first)
         usort($files, function($a, $b) {
-            return filemtime($a) - filemtime($b);
+            return (int) filemtime($a) - (int) filemtime($b);
         });
 
         return $files;
@@ -177,7 +177,7 @@ class FileHandlerService
         $password = $this->systemConfigService->getString('ActStockImporter.config.sftpPassword');
         $remotePath = $this->systemConfigService->getString('ActStockImporter.config.sftpPath');
 
-        if (!$host || !$username || !$password || !$remotePath) {
+        if ($host === '' || $username === '' || $password === '' || $remotePath === '') {
             $this->logger->error('Actualize Stock Importer: Missing SFTP configuration');
             return [];
         }
@@ -189,7 +189,7 @@ class FileHandlerService
             }
 
             $files = $sftp->nlist($remotePath);
-            if (!$files) {
+            if ($files === false || $files === []) {
                 return [];
             }
 
@@ -198,14 +198,14 @@ class FileHandlerService
 
             // Filter for CSV files and download them
             foreach ($files as $file) {
-                if (!preg_match('/\.csv$/i', $file)) {
+                if (preg_match('/\.csv$/i', $file) !== 1) {
                     continue;
                 }
 
                 $remotefile = rtrim($remotePath, '/') . '/' . $file;
                 $localFile = $importDir . '/' . $file;
 
-                if ($sftp->get($remotefile, $localFile)) {
+                if ((bool) $sftp->get($remotefile, $localFile)) {
                     $localFiles[] = $localFile;
                     $sftp->delete($remotefile);
                     $this->logger->info('Actualize Stock Importer: Downloaded file from SFTP', [
@@ -215,9 +215,9 @@ class FileHandlerService
             }
 
             // Sort by modification time
-            if (!empty($localFiles)) {
+            if ($localFiles !== []) {
                 usort($localFiles, function($a, $b) {
-                    return filemtime($a) - filemtime($b);
+                    return (int) filemtime($a) - (int) filemtime($b);
                 });
             }
 

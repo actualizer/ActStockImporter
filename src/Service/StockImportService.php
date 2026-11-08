@@ -46,7 +46,7 @@ class StockImportService
     public function import(): void
     {
         $files = $this->fileHandler->getStockFiles();
-        if (empty($files)) {
+        if ($files === []) {
             return;
         }
 
@@ -54,7 +54,7 @@ class StockImportService
             $this->logger->info('ACT Stock Importer: Processing file', ['file' => basename($filePath)]);
             
             $stocks = $this->fileHandler->parseCSV($filePath);
-            if (empty($stocks)) {
+            if ($stocks === []) {
                 $this->logger->warning('ACT Stock Importer: No valid data found in file', ['file' => basename($filePath)]);
                 $this->fileHandler->backupFile($filePath);
                 continue;
