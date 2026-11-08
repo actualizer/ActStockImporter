@@ -17,7 +17,7 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 
 ## Requirements
 
-- Shopware 6.7 or higher
+- Shopware `>=6.7 <6.8`, tested with 6.7.16.0
 - PHP 8.4 or higher
 - phpseclib/phpseclib ^3.0 (for SFTP functionality)
 
