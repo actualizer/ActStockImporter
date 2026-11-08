@@ -13,7 +13,6 @@ A Shopware 6 plugin that automatically imports stock levels from CSV files, supp
 - Stock aggregation for duplicate product numbers
 - Change detection: only products whose stock or active status actually changed are written
 - Comprehensive logging and error handling
-- Compatible with Shopware 6.7
 
 ## Requirements
 
@@ -158,8 +157,6 @@ bin/console scheduled-task:run
 
 ## Compatibility
 
-- **Shopware Version**: 6.7
-- **PHP Version**: 8.4+
 - **Dependencies**: phpseclib/phpseclib ^3.0
 - **Template Compatibility**: Uses Shopware 6.7 plugin structure
 
